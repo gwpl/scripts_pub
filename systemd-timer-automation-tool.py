@@ -393,12 +393,14 @@ def main():
                         help="Enable and start systemd user timer")
     parser.add_argument("--disable_and_stop", action="store_true",
                         help="Disable and stop systemd user timer")
+
     parser.add_argument("--logs", action="store_true",
                         help="Show logs for the systemd user timer service")
-    parser.add_argument("--restart", action="store_true",
-                        help="Reload systemd daemon and restart the timer")
     parser.add_argument("--since", 
                         help="Time specification for logs (default: 'today'). Examples: 'yesterday', '2 days ago', '1 hour ago', '2023-01-01 12:00:00', '-1h30m', '@1633072800' (Unix timestamp), 'now'")
+    
+    parser.add_argument("--restart", action="store_true",
+                        help="Reload systemd daemon and restart the timer")
     
     parser.add_argument("--no-restart", action="store_true",
                         help="Don't restart the timer after editing or creating configuration files")
