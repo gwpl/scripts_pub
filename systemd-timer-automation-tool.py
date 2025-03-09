@@ -242,9 +242,22 @@ def create_service_and_timer(args):
     print("  $ systemctl --user start daily_by_hostname.timer")
 
 
-def edit_file_in_editor(file_path: str):
+def restart_systemd_timer():
+    """
+    Reload systemd daemon and restart the timer.
+    """
+    print("Reloading systemd daemon...")
+    subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
+    
+    print("Restarting timer...")
+    subprocess.run(["systemctl", "--user", "restart", "daily_by_hostname.timer"], check=False)
+    
+    print("Timer restarted successfully.")
+
+def edit_file_in_editor(file_path: str, restart_after_edit=True):
     """
     Open the given file in $EDITOR or fallback to nano, vi.
+    Optionally restart the systemd timer after editing.
     """
     editor = os.environ.get("EDITOR", "")
     if not editor:
@@ -257,6 +270,9 @@ def edit_file_in_editor(file_path: str):
             print("No suitable editor found! Please set $EDITOR.")
             return
     subprocess.run([editor, file_path], check=False)
+    
+    if restart_after_edit:
+        restart_systemd_timer()
 
 
 def handle_configs(args):
@@ -277,18 +293,20 @@ def handle_configs(args):
             print("Error: --configs create requires --run-arg")
             sys.exit(1)
         create_service_and_timer(args)
+        if not args.no_restart:
+            restart_systemd_timer()
 
     elif args.configs == "edit-service":
         if not os.path.exists(service_file):
             print(f"Service file not found: {service_file}")
             return
-        edit_file_in_editor(service_file)
+        edit_file_in_editor(service_file, not args.no_restart)
 
     elif args.configs == "edit-timer":
         if not os.path.exists(timer_file):
             print(f"Timer file not found: {timer_file}")
             return
-        edit_file_in_editor(timer_file)
+        edit_file_in_editor(timer_file, not args.no_restart)
 
     elif args.configs == "delete":
         if os.path.exists(service_file):
@@ -310,7 +328,7 @@ def handle_systemd_install(args):
 
 def handle_systemd_timer_actions(args):
     """
-    Handle --status, --enable_and_start, --disable_and_stop, or --logs for the user-level timer.
+    Handle --status, --enable_and_start, --disable_and_stop, --logs, or --restart for the user-level timer.
     """
     user_cmd = None
     if args.status:
@@ -322,6 +340,10 @@ def handle_systemd_timer_actions(args):
     elif args.logs:
         since_value = args.since if args.since else "today"
         user_cmd = ["journalctl", "--user-unit", "daily_by_hostname.service", "--since", since_value]
+    elif args.restart:
+        restart_systemd_timer()
+        return
+        
     if user_cmd:
         print(f"Running: {' '.join(user_cmd)}")
         subprocess.run(user_cmd, check=False)
@@ -373,8 +395,13 @@ def main():
                         help="Disable and stop systemd user timer")
     parser.add_argument("--logs", action="store_true",
                         help="Show logs for the systemd user timer service")
+    parser.add_argument("--restart", action="store_true",
+                        help="Reload systemd daemon and restart the timer")
     parser.add_argument("--since", 
                         help="Time specification for logs (default: 'today'). Examples: 'yesterday', '2 days ago', '1 hour ago', '2023-01-01 12:00:00', '-1h30m', '@1633072800' (Unix timestamp), 'now'")
+    
+    parser.add_argument("--no-restart", action="store_true",
+                        help="Don't restart the timer after editing or creating configuration files")
 
     args = parser.parse_args()
 
