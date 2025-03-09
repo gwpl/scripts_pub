@@ -320,7 +320,8 @@ def handle_systemd_timer_actions(args):
     elif args.disable_and_stop:
         user_cmd = ["systemctl", "--user", "disable", "--now", "daily_by_hostname.timer"]
     elif args.logs:
-        user_cmd = ["journalctl", "--user-unit", "daily_by_hostname.service", "--since", "today"]
+        since_value = args.since if args.since else "today"
+        user_cmd = ["journalctl", "--user-unit", "daily_by_hostname.service", "--since", since_value]
     if user_cmd:
         print(f"Running: {' '.join(user_cmd)}")
         subprocess.run(user_cmd, check=False)
@@ -372,6 +373,8 @@ def main():
                         help="Disable and stop systemd user timer")
     parser.add_argument("--logs", action="store_true",
                         help="Show logs for the systemd user timer service")
+    parser.add_argument("--since", 
+                        help="Time specification for logs (default: 'today'). Examples: '2 days ago', 'yesterday', '1 hour ago'")
 
     args = parser.parse_args()
 
