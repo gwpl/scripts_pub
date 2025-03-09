@@ -374,7 +374,7 @@ def main():
     parser.add_argument("--logs", action="store_true",
                         help="Show logs for the systemd user timer service")
     parser.add_argument("--since", 
-                        help="Time specification for logs (default: 'today'). Examples: '2 days ago', 'yesterday', '1 hour ago'")
+                        help="Time specification for logs (default: 'today'). Examples: 'yesterday', '2 days ago', '1 hour ago', '2023-01-01 12:00:00', '-1h30m', '@1633072800' (Unix timestamp), 'now'")
 
     args = parser.parse_args()
 
