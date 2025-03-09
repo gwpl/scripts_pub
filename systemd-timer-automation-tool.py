@@ -432,7 +432,7 @@ def main():
         sys.exit(0)
 
     # handle systemd timer actions
-    if args.status or args.enable_and_start or args.disable_and_stop or args.logs:
+    if args.status or args.enable_and_start or args.disable_and_stop or args.logs or args.restart:
         handle_systemd_timer_actions(args)
         sys.exit(0)
 
