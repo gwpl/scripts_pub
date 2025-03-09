@@ -310,7 +310,7 @@ def handle_systemd_install(args):
 
 def handle_systemd_timer_actions(args):
     """
-    Handle --status, --enable_and_start, or --disable_and_stop for the user-level timer.
+    Handle --status, --enable_and_start, --disable_and_stop, or --logs for the user-level timer.
     """
     user_cmd = None
     if args.status:
@@ -319,6 +319,8 @@ def handle_systemd_timer_actions(args):
         user_cmd = ["systemctl", "--user", "enable", "--now", "daily_by_hostname.timer"]
     elif args.disable_and_stop:
         user_cmd = ["systemctl", "--user", "disable", "--now", "daily_by_hostname.timer"]
+    elif args.logs:
+        user_cmd = ["journalctl", "--user-unit", "daily_by_hostname.service", "--since", "today"]
     if user_cmd:
         print(f"Running: {' '.join(user_cmd)}")
         subprocess.run(user_cmd, check=False)
@@ -368,6 +370,8 @@ def main():
                         help="Enable and start systemd user timer")
     parser.add_argument("--disable_and_stop", action="store_true",
                         help="Disable and stop systemd user timer")
+    parser.add_argument("--logs", action="store_true",
+                        help="Show logs for the systemd user timer service")
 
     args = parser.parse_args()
 
@@ -396,7 +400,7 @@ def main():
         sys.exit(0)
 
     # handle systemd timer actions
-    if args.status or args.enable_and_start or args.disable_and_stop:
+    if args.status or args.enable_and_start or args.disable_and_stop or args.logs:
         handle_systemd_timer_actions(args)
         sys.exit(0)
 
